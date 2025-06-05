@@ -1,17 +1,14 @@
 package main
 
 import (
+	"github.com/brunojet/go-signserver-producer/internal/handlers"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	r := gin.Default()
-	// TODO: Adicionar middlewares de autenticação
 
-	r.POST("/upload/request", func(c *gin.Context) {
-		// TODO: Implementar geração de presigned URL
-		c.JSON(200, gin.H{"message": "Solicitação de upload recebida"})
-	})
+	r.POST("/upload/request", handlers.UploadRequestHandler)
 
 	r.Run(":8080")
 }
