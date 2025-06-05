@@ -2,17 +2,44 @@ package handlers
 
 import (
 	"net/http"
-	"github.com/gin-gonic/gin"
+	"os"
+	"time"
+
 	"github.com/brunojet/go-signserver-producer/internal/models"
+	"github.com/brunojet/go-signserver-producer/internal/services"
+	"github.com/gin-gonic/gin"
 )
 
 // UploadRequestHandler lida com a solicitação de upload de APK.
 func UploadRequestHandler(c *gin.Context) {
 	var req models.UploadRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Dados inválidos"})
+		c.JSON(http.StatusBadRequest, models.UploadResponse{Error: "Dados inválidos"})
 		return
 	}
-	// Aqui futuramente será chamada a service para gerar a presigned URL
-	c.JSON(http.StatusOK, gin.H{"message": "Solicitação de upload recebida", "payload": req})
+
+	bucket := os.Getenv("S3_BUCKET")
+	if bucket == "" {
+		c.JSON(http.StatusInternalServerError, models.UploadResponse{Error: "Bucket S3 não configurado"})
+		return
+	}
+
+	s3svc, err := services.NewS3Service(bucket)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.UploadResponse{Error: "Erro ao inicializar serviço S3"})
+		return
+	}
+
+	presignedURL, err := s3svc.GeneratePresignedURL(req.FileName, 15*time.Minute)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.UploadResponse{Error: "Erro ao gerar presigned URL"})
+		return
+	}
+
+	c.JSON(http.StatusOK, models.UploadResponse{
+		Message: "Presigned URL gerada com sucesso",
+		Payload: gin.H{
+			"presigned_url": presignedURL,
+		},
+	})
 }
