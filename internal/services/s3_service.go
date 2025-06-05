@@ -5,8 +5,11 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
+	"github.com/aws/aws-sdk-go-v2/service/sts/types"
 )
 
 // S3Service encapsula operações com o S3.
@@ -15,9 +18,9 @@ type S3Service struct {
 	Bucket string
 }
 
-// NewS3Service inicializa o serviço S3.
-func NewS3Service(bucket string) (*S3Service, error) {
-	cfg, err := config.LoadDefaultConfig(context.TODO())
+// NewS3ServiceWithConfigLoader permite injetar função de carregamento de config (para testes).
+func NewS3ServiceWithConfigLoader(bucket string, loadConfig func(ctx context.Context, optFns ...func(*config.LoadOptions) error) (aws.Config, error)) (*S3Service, error) {
+	cfg, err := loadConfig(context.TODO())
 	if err != nil {
 		return nil, err
 	}
@@ -25,9 +28,23 @@ func NewS3Service(bucket string) (*S3Service, error) {
 	return &S3Service{Client: client, Bucket: bucket}, nil
 }
 
-// GeneratePresignedURL gera uma URL presignada para upload de arquivo.
+// NewS3Service padrão, usa config.LoadDefaultConfig
+func NewS3Service(bucket string) (*S3Service, error) {
+	return NewS3ServiceWithConfigLoader(bucket, config.LoadDefaultConfig)
+}
+
+var newPresignClient = func(client *s3.Client) PresignPutObjectAPI {
+	return s3.NewPresignClient(client)
+}
+
+// PresignPutObjectAPI define a interface para mocks do PresignClient do S3.
+type PresignPutObjectAPI interface {
+	PresignPutObject(ctx context.Context, params *s3.PutObjectInput, optFns ...func(*s3.PresignOptions)) (*v4.PresignedHTTPRequest, error)
+}
+
+// Ajusta GeneratePresignedURL para usar a interface e permitir mock nos testes
 func (s *S3Service) GeneratePresignedURL(key string, expires time.Duration) (string, error) {
-	presignClient := s3.NewPresignClient(s.Client)
+	presignClient := newPresignClient(s.Client)
 	params := &s3.PutObjectInput{
 		Bucket: aws.String(s.Bucket),
 		Key:    aws.String(key),
@@ -39,4 +56,23 @@ func (s *S3Service) GeneratePresignedURL(key string, expires time.Duration) (str
 		return "", err
 	}
 	return presignedReq.URL, nil
+}
+
+// Gera credenciais temporárias STS para escrita no S3
+func GenerateTemporaryS3Credentials(roleArn, sessionName string, duration time.Duration) (*types.Credentials, error) {
+	cfg, err := config.LoadDefaultConfig(context.TODO())
+	if err != nil {
+		return nil, err
+	}
+	stsClient := sts.NewFromConfig(cfg)
+	input := &sts.AssumeRoleInput{
+		RoleArn:         aws.String(roleArn),
+		RoleSessionName: aws.String(sessionName),
+		DurationSeconds: aws.Int32(int32(duration.Seconds())),
+	}
+	result, err := stsClient.AssumeRole(context.TODO(), input)
+	if err != nil {
+		return nil, err
+	}
+	return result.Credentials, nil
 }
