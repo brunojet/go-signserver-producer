@@ -53,7 +53,7 @@ func UploadRequestHandler(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, models.UploadResponse{Error: "Erro ao inicializar serviço S3"})
 			return
 		}
-		postData, err := s3svc.GeneratePresignedPostURL(req.FileName, 15*time.Minute, req.FileSize)
+		postData, err := s3svc.GeneratePresignedURL(req.FileName, 15*time.Minute)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, models.UploadResponse{Error: "Erro ao gerar presigned POST"})
 			return
