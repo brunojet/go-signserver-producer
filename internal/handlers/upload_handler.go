@@ -25,7 +25,7 @@ func UploadRequestHandler(c *gin.Context) {
 	}
 
 	switch req.UploadMethod {
-	case "sts_temporary_credentials":
+	case models.UploadMethodSTSTemporaryCredentials:
 		roleArn := os.Getenv("S3_UPLOAD_ROLE_ARN")
 		if roleArn == "" {
 			c.JSON(http.StatusInternalServerError, models.UploadResponse{Error: "Role ARN não configurado"})
@@ -36,7 +36,6 @@ func UploadRequestHandler(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, models.UploadResponse{Error: "Erro ao gerar credenciais temporárias"})
 			return
 		}
-		// Conversão explícita para *types.Credentials se necessário
 		c.JSON(http.StatusOK, models.UploadResponse{
 			Message: "Credenciais temporárias geradas com sucesso",
 			Payload: gin.H{
@@ -47,23 +46,21 @@ func UploadRequestHandler(c *gin.Context) {
 			},
 		})
 		return
-	case "presigned_url", "":
-		// Default para presigned_url
+	case models.UploadMethodPresignedURL, "":
+		// Default para presigned_url usando presigned POST com limite de tamanho
 		s3svc, err := services.NewS3Service(bucket)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, models.UploadResponse{Error: "Erro ao inicializar serviço S3"})
 			return
 		}
-		presignedURL, err := s3svc.GeneratePresignedURL(req.FileName, 15*time.Minute)
+		postData, err := s3svc.GeneratePresignedPostURL(req.FileName, 15*time.Minute, req.FileSize)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, models.UploadResponse{Error: "Erro ao gerar presigned URL"})
+			c.JSON(http.StatusInternalServerError, models.UploadResponse{Error: "Erro ao gerar presigned POST"})
 			return
 		}
 		c.JSON(http.StatusOK, models.UploadResponse{
-			Message: "Presigned URL gerada com sucesso",
-			Payload: gin.H{
-				"presigned_url": presignedURL,
-			},
+			Message: "Presigned POST gerado com sucesso",
+			Payload: postData,
 		})
 		return
 	default:
