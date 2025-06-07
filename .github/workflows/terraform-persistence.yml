@@ -1,0 +1,74 @@
+name: Terraform Deploy - Persistence
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - 'infra/persistence/**'
+      - '.github/workflows/terraform-persistence.yml'
+  pull_request:
+    branches:
+      - develop
+    paths:
+      - 'infra/persistence/**'
+  workflow_dispatch:
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1 # Altere para sua região se necessário
+
+      - name: Terraform Init
+        working-directory: infra/persistence
+        run: terraform init
+
+      - name: Load environment variables from .env file based on branch
+        run: |
+          BRANCH_NAME="${GITHUB_REF##*/}"
+          ENV_FILE="infra/persistence/${BRANCH_NAME}.env"
+          if [ -f "$ENV_FILE" ]; then
+            set -a
+            source "$ENV_FILE"
+            set +a
+            terraform plan -var="environment=$ENVIRONMENT" -var="project=$PROJECT"
+          else
+            echo "Arquivo $ENV_FILE não encontrado. Nenhuma variável de ambiente carregada."
+          fi
+        shell: bash
+
+    #   - name: Wait for manual approval
+    #     uses: trstringer/manual-approval@v1
+    #     with:
+    #       secret: ${{ github.TOKEN }}
+    #       approvers: seu-usuario-github # Substitua pelo(s) usuário(s) autorizado(s)
+    #       minimum-approvals: 1
+
+    #   - name: Terraform Apply
+    #     if: ${{ success() }}
+    #     working-directory: infra/persistence
+    #     run: |
+    #       BRANCH_NAME="${GITHUB_REF##*/}"
+    #       ENV_FILE="infra/persistence/${BRANCH_NAME}.env"
+    #       if [ -f "$ENV_FILE" ]; then
+    #         set -a
+    #         source "$ENV_FILE"
+    #         set +a
+    #         terraform apply -auto-approve -var="environment=$ENVIRONMENT" -var="project=$PROJECT"
+    #       else
+    #         echo "Arquivo $ENV_FILE não encontrado. Nenhuma variável de ambiente carregada."
+    #       fi
+    #     shell: bash
