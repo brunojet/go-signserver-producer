@@ -1,3 +1,7 @@
+provider "aws" {
+  region = var.aws_region != null ? var.aws_region : "us-east-1"
+}
+
 resource "aws_s3_bucket" "persistence" {
   bucket = "${var.project}-${var.environment}"
 
@@ -67,4 +71,12 @@ resource "aws_iam_policy" "persistence_policy" {
 resource "aws_iam_role_policy_attachment" "persistence_policy_attachment" {
   role       = aws_iam_role.persistence_access.name
   policy_arn = aws_iam_policy.persistence_policy.arn
+}
+
+output "debug_project" {
+  value = var.project
+}
+
+output "debug_environment" {
+  value = var.environment
 }

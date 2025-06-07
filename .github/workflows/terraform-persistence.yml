@@ -33,11 +33,15 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1 # Altere para sua região se necessário
 
+      - name: Install dos2unix
+        run: sudo apt-get update && sudo apt-get install -y dos2unix
+
       - name: Terraform Init
         working-directory: infra/persistence
         run: terraform init
 
       - name: Load environment variables from .env file based on branch
+        working-directory: infra/persistence
         run: |
           if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
             BRANCH_NAME="$GITHUB_BASE_REF"
@@ -45,15 +49,19 @@ jobs:
             echo "Precisa ser um pull request para carregar as variáveis de ambiente."
             exit 1
           fi
-          ENV_FILE="infra/persistence/${BRANCH_NAME}.env"
+          ENV_FILE="${BRANCH_NAME}.env"
           if [ -f "$ENV_FILE" ]; then
+            echo "Carregando variáveis de ambiente do arquivo $ENV_FILE"
+            dos2unix $ENV_FILE
             set -a
             source "$ENV_FILE"
             set +a
+            echo "Carregando environment=$ENVIRONMENT"
+            echo "Carregando project=$PROJECT"
             terraform plan -var="environment=$ENVIRONMENT" -var="project=$PROJECT"
           else
             echo "Arquivo $ENV_FILE não encontrado. Falhando o workflow."
-            exit 1
+            exit 2
           fi
         shell: bash
 
