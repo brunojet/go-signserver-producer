@@ -39,7 +39,12 @@ jobs:
 
       - name: Load environment variables from .env file based on branch
         run: |
-          BRANCH_NAME="${GITHUB_REF##*/}"
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            BRANCH_NAME="$GITHUB_BASE_REF"
+          else
+            echo "Precisa ser um pull request para carregar as variáveis de ambiente."
+            exit 1
+          fi
           ENV_FILE="infra/persistence/${BRANCH_NAME}.env"
           if [ -f "$ENV_FILE" ]; then
             set -a
@@ -47,7 +52,8 @@ jobs:
             set +a
             terraform plan -var="environment=$ENVIRONMENT" -var="project=$PROJECT"
           else
-            echo "Arquivo $ENV_FILE não encontrado. Nenhuma variável de ambiente carregada."
+            echo "Arquivo $ENV_FILE não encontrado. Falhando o workflow."
+            exit 1
           fi
         shell: bash
 
