@@ -58,13 +58,23 @@ func (s *S3Service) GeneratePresignedURL(key string, expires time.Duration) (str
 	return presignedReq.URL, nil
 }
 
+// Função para criar o STS client, permite injeção de mock em testes
+var newSTSClient = func(cfg aws.Config) STSAPI {
+	return sts.NewFromConfig(cfg)
+}
+
+// STSAPI define interface para mocks do STS Client.
+type STSAPI interface {
+	AssumeRole(ctx context.Context, params *sts.AssumeRoleInput, optFns ...func(*sts.Options)) (*sts.AssumeRoleOutput, error)
+}
+
 // Gera credenciais temporárias STS para escrita no S3
-func GenerateTemporaryS3Credentials(roleArn, sessionName string, duration time.Duration) (*types.Credentials, error) {
-	cfg, err := config.LoadDefaultConfig(context.TODO())
+func GenerateTemporaryS3CredentialsWithClient(roleArn, sessionName string, duration time.Duration, loadConfig func(ctx context.Context, optFns ...func(*config.LoadOptions) error) (aws.Config, error), stsClientFactory func(cfg aws.Config) STSAPI) (*types.Credentials, error) {
+	cfg, err := loadConfig(context.TODO())
 	if err != nil {
 		return nil, err
 	}
-	stsClient := sts.NewFromConfig(cfg)
+	stsClient := stsClientFactory(cfg)
 	input := &sts.AssumeRoleInput{
 		RoleArn:         aws.String(roleArn),
 		RoleSessionName: aws.String(sessionName),
@@ -75,4 +85,9 @@ func GenerateTemporaryS3Credentials(roleArn, sessionName string, duration time.D
 		return nil, err
 	}
 	return result.Credentials, nil
+}
+
+// Versão padrão, usa config.LoadDefaultConfig e newSTSClient
+func GenerateTemporaryS3Credentials(roleArn, sessionName string, duration time.Duration) (*types.Credentials, error) {
+	return GenerateTemporaryS3CredentialsWithClient(roleArn, sessionName, duration, config.LoadDefaultConfig, newSTSClient)
 }

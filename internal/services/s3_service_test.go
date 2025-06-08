@@ -9,6 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
+	"github.com/aws/aws-sdk-go-v2/service/sts/types"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -59,14 +61,23 @@ func TestNewS3Service_Error(t *testing.T) {
 }
 
 func TestGenerateTemporaryS3Credentials_Success(t *testing.T) {
-	// Este teste é apenas ilustrativo, pois AssumeRole real exige AWS configurado.
-	// Em ambiente real, use mock do stsClient.
-	roleArn := "arn:aws:iam::123456789012:role/test-role"
-	creds, err := GenerateTemporaryS3Credentials(roleArn, "test-session", 900*time.Second)
-	if err != nil {
-		t.Logf("Erro esperado em ambiente local: %v", err)
-		return
+	mockSTS := &MockSTSClient{
+		AssumeRoleFunc: func(ctx context.Context, params *sts.AssumeRoleInput, optFns ...func(*sts.Options)) (*sts.AssumeRoleOutput, error) {
+			return &sts.AssumeRoleOutput{
+				Credentials: &types.Credentials{
+					AccessKeyId:     aws.String("mock-access-key"),
+					SecretAccessKey: aws.String("mock-secret-key"),
+					SessionToken:    aws.String("mock-session-token"),
+				},
+			}, nil
+		},
 	}
+	mockLoader := func(ctx context.Context, optFns ...func(*config.LoadOptions) error) (aws.Config, error) {
+		return aws.Config{}, nil
+	}
+	roleArn := "arn:aws:iam::123456789012:role/test-role"
+	creds, err := GenerateTemporaryS3CredentialsWithClient(roleArn, "test-session", 900*time.Second, mockLoader, func(cfg aws.Config) STSAPI { return mockSTS })
+	assert.NoError(t, err)
 	assert.NotNil(t, creds)
-	assert.NotEmpty(t, creds.AccessKeyId)
+	assert.Equal(t, "mock-access-key", *creds.AccessKeyId)
 }
