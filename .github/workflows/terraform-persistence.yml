@@ -26,7 +26,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
+      - name: Carregar variáveis de ambiente
+        working-directory: infra/persistence
+        run: bash ./load_env.sh
+        shell: bash
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
@@ -51,49 +56,15 @@ jobs:
 
       - name: Terraform Plan (Pull Request ou Push)
         working-directory: infra/persistence
-        run: |
-          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
-            BRANCH_NAME="$GITHUB_BASE_REF"
-          else
-            BRANCH_NAME="${GITHUB_REF##*/}"
-          fi
-          ENV_FILE="${BRANCH_NAME}.env"
-          echo "Aquivo de configuração de ambiente: $ENV_FILE"
-          if [[ "$BRANCH_NAME" == release* ]]; then
-            ENV_FILE="release.env"
-          fi
-          if [ -f "$ENV_FILE" ]; then
-            set -a
-            source "$ENV_FILE"
-            set +a
-            echo "Environment=$ENVIRONMENT, Project=$PROJECT"
-            terraform plan -out=planfile -var="environment=$ENVIRONMENT" -var="project=$PROJECT"
-          else
-            echo "Arquivo $ENV_FILE não encontrado. Falhando o workflow."
-            exit 2
-          fi
+        run: terraform plan -out=planfile -var="environment=$ENVIRONMENT" -var="project=$PROJECT"
         shell: bash
 
       - name: Terraform Apply (Merge em develop, release ou master)
         if: github.event_name == 'push'
         working-directory: infra/persistence
         run: |
-          BRANCH_NAME="${GITHUB_REF##*/}"
-          if [[ "$BRANCH_NAME" == release* ]]; then
-            ENV_FILE="release.env"
-          else
-            ENV_FILE="${BRANCH_NAME}.env"
-          fi
-          if [ -f "$ENV_FILE" ]; then
-            set -a
-            source "$ENV_FILE"
-            set +a
-            terraform apply -auto-approve planfile
-            terraform output
-          else
-            echo "Arquivo $ENV_FILE" não encontrado. Nenhuma variável de ambiente carregada."
-            exit 2
-          fi
+          terraform apply -auto-approve planfile
+          terraform output
         shell: bash
 
       - name: Clean up planfile
