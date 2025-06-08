@@ -49,10 +49,14 @@ jobs:
         working-directory: infra/persistence
         run: terraform validate
 
-      - name: Terraform Plan (Pull Request)
+      - name: Terraform Plan (Pull Request ou Push)
         working-directory: infra/persistence
         run: |
-          BRANCH_NAME="$GITHUB_BASE_REF"
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            BRANCH_NAME="$GITHUB_BASE_REF"
+          else
+            BRANCH_NAME="${GITHUB_REF##*/}"
+          fi
           ENV_FILE="${BRANCH_NAME}.env"
           if [[ "$BRANCH_NAME" == release* ]]; then
             ENV_FILE="release.env"
