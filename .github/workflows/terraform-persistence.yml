@@ -58,16 +58,15 @@ jobs:
             BRANCH_NAME="${GITHUB_REF##*/}"
           fi
           ENV_FILE="${BRANCH_NAME}.env"
+          echo "Aquivo de configuração de ambiente: $ENV_FILE"
           if [[ "$BRANCH_NAME" == release* ]]; then
             ENV_FILE="release.env"
           fi
           if [ -f "$ENV_FILE" ]; then
-            echo "Carregando variáveis de ambiente do arquivo $ENV_FILE"
             set -a
             source "$ENV_FILE"
             set +a
-            echo "Carregando environment=$ENVIRONMENT"
-            echo "Carregando project=$PROJECT"
+            echo "Environment=$ENVIRONMENT, Project=$PROJECT"
             terraform plan -out=planfile -var="environment=$ENVIRONMENT" -var="project=$PROJECT"
           else
             echo "Arquivo $ENV_FILE não encontrado. Falhando o workflow."
