@@ -6,6 +6,7 @@ variable "environment" {
 variable "project" {
   description = "Nome do projeto para compor o nome do bucket"
   type        = string
+  default     = "go-signserver"
 }
 
 variable "bucket_acl" {
