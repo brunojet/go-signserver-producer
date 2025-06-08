@@ -1,7 +1,11 @@
 resource "aws_s3_bucket" "this" {
-  bucket = var.bucket_name
-  force_destroy = var.force_destroy
-  tags = var.tags
+  bucket        = var.bucket_name
+  force_destroy = false # Protege contra deleção acidental por padrão
+  tags          = var.tags
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_s3_bucket_versioning" "this" {
