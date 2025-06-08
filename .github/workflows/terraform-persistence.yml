@@ -56,7 +56,7 @@ jobs:
 
       - name: Terraform Plan (Pull Request ou Push)
         working-directory: infra/persistence
-        run: terraform plan -out=planfile -var="environment=$ENVIRONMENT" -var="project=$PROJECT"
+        run: terraform plan -out=planfile -var="environment=$ENVIRONMENT"
         shell: bash
 
       - name: Terraform Apply (Merge em develop, release ou master)
