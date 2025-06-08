@@ -1,0 +1,98 @@
+name: Terraform Deploy - Persistence
+
+on:
+  push:
+    branches:
+      - develop
+      - master
+      - 'release*'
+    paths:
+      - 'infra/persistence/**'
+      - '.github/workflows/terraform-persistence.yml'
+  pull_request:
+    branches:
+      - develop
+      - master
+      - 'release*'
+    paths:
+      - 'infra/persistence/**'
+  workflow_dispatch:
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    environment: aws-brunojet
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1 # Altere para sua região se necessário
+
+      - name: Terraform Init
+        working-directory: infra/persistence
+        run: terraform init
+
+      - name: Terraform Format
+        working-directory: infra/persistence
+        run: terraform fmt -check
+
+      - name: Terraform Validate
+        working-directory: infra/persistence
+        run: terraform validate
+
+      - name: Terraform Plan (Pull Request)
+        working-directory: infra/persistence
+        run: |
+          BRANCH_NAME="$GITHUB_BASE_REF"
+          ENV_FILE="${BRANCH_NAME}.env"
+          if [[ "$BRANCH_NAME" == release* ]]; then
+            ENV_FILE="release.env"
+          fi
+          if [ -f "$ENV_FILE" ]; then
+            echo "Carregando variáveis de ambiente do arquivo $ENV_FILE"
+            set -a
+            source "$ENV_FILE"
+            set +a
+            echo "Carregando environment=$ENVIRONMENT"
+            echo "Carregando project=$PROJECT"
+            terraform plan -out=planfile -var="environment=$ENVIRONMENT" -var="project=$PROJECT"
+          else
+            echo "Arquivo $ENV_FILE não encontrado. Falhando o workflow."
+            exit 2
+          fi
+        shell: bash
+
+      - name: Terraform Apply (Merge em develop, release ou master)
+        if: github.event_name == 'push'
+        working-directory: infra/persistence
+        run: |
+          BRANCH_NAME="${GITHUB_REF##*/}"
+          if [[ "$BRANCH_NAME" == release* ]]; then
+            ENV_FILE="release.env"
+          else
+            ENV_FILE="${BRANCH_NAME}.env"
+          fi
+          if [ -f "$ENV_FILE" ]; then
+            set -a
+            source "$ENV_FILE"
+            set +a
+            terraform apply -auto-approve planfile
+            terraform output
+          else
+            echo "Arquivo $ENV_FILE" não encontrado. Nenhuma variável de ambiente carregada."
+            exit 2
+          fi
+        shell: bash
+
+      - name: Clean up planfile
+        working-directory: infra/persistence
+        run: rm -f planfile
