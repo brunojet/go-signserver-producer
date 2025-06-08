@@ -14,7 +14,7 @@ Este módulo gerencia o bucket S3 para persistência do projeto, com suporte a m
 module "persistencia_s3" {
   source     = "./infra/persistencia"
   environment = "dev"
-  project     = "go-signserver-producer"
+  project     = "go-signserver"
 }
 ```
 
