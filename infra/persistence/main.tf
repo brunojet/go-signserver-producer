@@ -45,3 +45,32 @@ module "signature_request_table" {
     Project     = var.project
   }
 }
+
+module "main_queue" {
+  source      = "./modules/sqs_queue"
+  name        = "${var.project}-${var.environment}-main-queue"
+  tags = {
+    Name        = "${var.project}-${var.environment}-main-queue"
+    Environment = var.environment
+    Project     = var.project
+  }
+}
+
+module "main_dlq" {
+  source      = "./modules/sqs_queue"
+  name        = "${var.project}-${var.environment}-main-dlq"
+  tags = {
+    Name        = "${var.project}-${var.environment}-main-dlq"
+    Environment = var.environment
+    Project     = var.project
+  }
+}
+
+# Atualiza a main_queue para usar a DLQ
+resource "aws_sqs_queue_redrive_allow_policy" "main_queue_redrive" {
+  queue_url = module.main_queue.queue_url
+  redrive_allow_policy = jsonencode({
+    redrivePermission = "byQueue",
+    sourceQueueArns   = [module.main_dlq.queue_arn]
+  })
+}
