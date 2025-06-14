@@ -8,6 +8,11 @@ data "terraform_remote_state" "persistence" {
   }
 }
 
+# ---
+# [Ponto crítico] O remote_state é usado para buscar os ARNs dos recursos de persistência (S3/DynamoDB) já criados em outro stack.
+# Certifique-se de que o state de persistência está atualizado e acessível antes de rodar este orquestrador.
+# ---
+
 # Lambda (placeholder)
 module "signer_lambda" {
   source                = "../modules/lambda"
@@ -24,6 +29,9 @@ module "signer_lambda" {
     Project     = var.project
   }
 }
+
+# [Ponto crítico] O nome da função Lambda é usado em policies e permissões. Evite caracteres especiais.
+# Se precisar anexar policies extras, use o output role_name deste módulo.
 
 # Step Function
 module "signer_flow" {
@@ -47,6 +55,9 @@ module "signer_flow" {
 }
 EOF
 }
+
+# [Ponto crítico] A role de execução da Step Function é exposta via output stepfunction_exec_role_name.
+# Use este output para anexar policies de invoke Lambda ou outras permissões necessárias.
 
 module "s3_object_created_eventbridge" {
   source        = "../modules/eventbridge"
@@ -74,6 +85,8 @@ resource "aws_iam_policy" "stepfunction_lambda_invoke" {
     }]
   })
 }
+
+# [Ponto crítico] Esta policy só pode ser criada após Lambda e Step Function existirem, pois depende do ARN real do Lambda.
 
 resource "aws_iam_role_policy_attachment" "stepfunction_invoke_lambda" {
   role       = module.signer_flow.stepfunction_exec_role_name
@@ -113,6 +126,8 @@ resource "aws_iam_policy" "lambda_policy" {
     ]
   })
 }
+
+# [Ponto crítico] Esta policy depende dos ARNs vindos do remote_state. Se o state de persistência mudar, revise os ARNs aqui.
 
 resource "aws_iam_role_policy_attachment" "lambda_access_persistence" {
   role       = module.signer_lambda.role_name
