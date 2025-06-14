@@ -11,7 +11,7 @@ data "terraform_remote_state" "persistence" {
 # Lambda (placeholder)
 module "signer_lambda" {
   source                = "../modules/lambda"
-  name                  = "${var.project}-${var.environment}-signer-lambda"
+  name                  = "${local.project_env}-signer-lambda"
   handler               = "hello.handler"
   runtime               = "nodejs18.x"
   filename              = null
@@ -19,7 +19,7 @@ module "signer_lambda" {
   timeout               = 10
   memory_size           = 128
   tags = {
-    Name        = "${var.project}-${var.environment}-signer-lambda"
+    Name        = "${local.project_env}-signer-lambda"
     Environment = var.environment
     Project     = var.project
   }
@@ -80,8 +80,8 @@ resource "aws_iam_role_policy_attachment" "stepfunction_invoke_lambda" {
   policy_arn = aws_iam_policy.stepfunction_lambda_invoke.arn
 }
 
-resource "aws_iam_policy" "lambda_access_persistence_policy" {
-  name        = "${local.project_env}-lambda-access-persistence"
+resource "aws_iam_policy" "lambda_policy" {
+  name        = "${local.project_env}-lambda-persistence"
   description = "Permite ao Lambda acessar S3 e DynamoDB da persistência"
   policy = jsonencode({
     Version = "2012-10-17",
@@ -116,6 +116,6 @@ resource "aws_iam_policy" "lambda_access_persistence_policy" {
 
 resource "aws_iam_role_policy_attachment" "lambda_access_persistence" {
   role       = module.signer_lambda.role_name
-  policy_arn = aws_iam_policy.lambda_access_persistence_policy.arn
+  policy_arn = aws_iam_policy.lambda_policy.arn
 }
 

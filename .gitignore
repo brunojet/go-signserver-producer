@@ -7,8 +7,8 @@
 *.dll
 *.so
 *.dylib
-**/.terraform/**
-**lock.hcl
+iac/**/.terraform/**
+iac/**/**lock.hcl
 iac/**/*.js
 iac/**/*.zip
 
