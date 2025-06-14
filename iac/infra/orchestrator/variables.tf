@@ -11,7 +11,3 @@ variable "project" {
 }
 
 variable "environment" { type = string }
-
-locals {
-  project_env = "${var.project}-${var.environment}"
-}
