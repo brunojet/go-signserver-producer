@@ -24,7 +24,6 @@ module "signer_lambda" {
   timeout               = 10
   memory_size           = 128
   tags = {
-    Name        = "${local.project_env}-signer-lambda"
     Environment = var.environment
     Project     = var.project
   }
@@ -35,10 +34,9 @@ module "signer_lambda" {
 
 # Step Function
 module "signer_flow" {
-  source     = "../modules/stepfunction"
-  name       = "${local.project_env}-signer-flow"
+  source = "../modules/stepfunction"
+  name   = "${local.project_env}-signer-flow"
   tags = {
-    Name        = "${local.project_env}-signer-flow"
     Environment = var.environment
     Project     = var.project
   }
@@ -65,9 +63,14 @@ EOF
 # Use este output para anexar policies de invoke Lambda ou outras permissões necessárias.
 
 module "s3_object_created_eventbridge" {
-  source        = "../modules/eventbridge"
-  name          = local.project_env
-  target_arn    = module.signer_flow.state_machine_arn
+  source     = "../modules/eventbridge"
+  name       = local.project_env
+  target_arn = module.signer_flow.state_machine_arn
+  tags = {
+    Environment = var.environment
+    Project     = var.project
+  }
+
   event_pattern = <<EOF
 {
   "source": ["aws.s3"],

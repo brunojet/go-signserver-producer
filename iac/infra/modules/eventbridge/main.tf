@@ -8,12 +8,14 @@ resource "aws_iam_role" "eventbridge_invoke" {
       Action = "sts:AssumeRole"
     }]
   })
+  tags = var.tags
 }
 
 resource "aws_cloudwatch_event_rule" "this" {
   name          = "${var.name}-eventbridge-rule"
   event_pattern = var.event_pattern
   event_bus_name = var.event_bus_name
+  tags = var.tags
 }
 
 resource "aws_cloudwatch_event_target" "this" {

@@ -8,3 +8,9 @@ variable "event_bus_name" {
   default     = "default"
   description = "Nome do EventBridge bus (default = 'default')"
 }
+
+variable "tags" {
+  description = "Tags para os recursos do EventBridge"
+  type        = map(string)
+  default     = {}
+}

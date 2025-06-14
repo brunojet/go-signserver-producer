@@ -28,6 +28,7 @@ resource "aws_iam_policy" "lambda_basic" {
       Resource = "arn:aws:logs:*:*:*"
     }]
   })
+  tags = var.tags
 }
 
 resource "aws_iam_role_policy_attachment" "lambda_basic_attach" {

@@ -8,6 +8,7 @@ resource "aws_iam_role" "stepfunction_exec" {
       Action    = "sts:AssumeRole"
     }]
   })
+  tags = var.tags
 }
 
 resource "aws_sfn_state_machine" "this" {
