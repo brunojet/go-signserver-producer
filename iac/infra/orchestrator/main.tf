@@ -24,7 +24,7 @@ module "signer_lambda" {
   timeout               = 10
   memory_size           = 128
   tags = {
-    Environment = var.environment
+    Environment = local.environment
     Project     = var.project
   }
 }
@@ -37,7 +37,7 @@ module "signer_flow" {
   source = "../modules/stepfunction"
   name   = "${local.project_env}-signer-flow"
   tags = {
-    Environment = var.environment
+    Environment = local.environment
     Project     = var.project
   }
   definition = <<EOF
@@ -67,7 +67,7 @@ module "s3_object_created_eventbridge" {
   name       = local.project_env
   target_arn = module.signer_flow.state_machine_arn
   tags = {
-    Environment = var.environment
+    Environment = local.environment
     Project     = var.project
   }
 
@@ -82,7 +82,7 @@ EOF
 
 # Policy para Step Function invocar Lambda (criada após Lambda e Step Function existirem)
 resource "aws_iam_policy" "stepfunction_lambda_invoke" {
-  name        = "${var.project}-${var.environment}-stepfunction-lambda-invoke"
+  name        = "${local.project_env}-stepfunction-lambda-invoke"
   description = "Permite à Step Function invocar Lambda"
   policy = jsonencode({
     Version = "2012-10-17",

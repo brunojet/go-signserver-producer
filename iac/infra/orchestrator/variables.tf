@@ -9,5 +9,3 @@ variable "project" {
   type        = string
   default     = "go-signserver"
 }
-
-variable "environment" { type = string }
