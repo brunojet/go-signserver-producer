@@ -37,6 +37,11 @@ module "signer_lambda" {
 module "signer_flow" {
   source     = "../modules/stepfunction"
   name       = "${local.project_env}-signer-flow"
+  tags = {
+    Name        = "${local.project_env}-signer-flow"
+    Environment = var.environment
+    Project     = var.project
+  }
   definition = <<EOF
 {
   "Comment": "Signer flow skeleton",
