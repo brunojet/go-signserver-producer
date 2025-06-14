@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 module "persistence_bucket" {
-  source        = "./modules/s3_bucket"
+  source        = "../modules/s3_bucket"
   bucket_name   = "${var.project}-${var.environment}"
   versioning    = true
   force_destroy = false
@@ -15,7 +15,7 @@ module "persistence_bucket" {
 }
 
 module "device_profile_table" {
-  source     = "./modules/dynamodb_table"
+  source     = "../modules/dynamodb_table"
   table_name = "${var.project}-${var.environment}-device-profile"
   hash_key   = "pk"
   range_key  = "sk"
@@ -31,7 +31,7 @@ module "device_profile_table" {
 }
 
 module "signature_request_table" {
-  source     = "./modules/dynamodb_table"
+  source     = "../modules/dynamodb_table"
   table_name = "${var.project}-${var.environment}-signature-request"
   hash_key   = "pk"
   range_key  = "sk"
