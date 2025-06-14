@@ -7,6 +7,10 @@
 *.dll
 *.so
 *.dylib
+**/.terraform/**
+**lock.hcl
+iac/**/*.js
+iac/**/*.zip
 
 # Test binary, built with `go test -c`
 *.test

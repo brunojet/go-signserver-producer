@@ -13,7 +13,7 @@ output "persistence_bucket_role_arn" {
   value       = module.persistence_bucket.role_arn
 }
 
-output "persistence_buckett_policy_arn" {
+output "persistence_bucket_policy_arn" {
   description = "ARN da IAM Policy para acesso ao bucket de persistência."
   value       = module.persistence_bucket.policy_arn
 }
