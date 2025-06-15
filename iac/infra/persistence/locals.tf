@@ -11,7 +11,7 @@ locals {
     Project     = var.project
     Environment = local.environment
     ManagedBy   = "terraform"
-    Module      = "orchestrator"
+    Module      = "persistence"
   }
 }
 
