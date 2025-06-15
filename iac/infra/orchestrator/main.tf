@@ -23,10 +23,7 @@ module "signer_lambda" {
   environment_variables = {}
   timeout               = 10
   memory_size           = 128
-  tags = {
-    Environment = local.environment
-    Project     = var.project
-  }
+  tags                  = local.tags
 }
 
 # [Ponto crítico] O nome da função Lambda é usado em policies e permissões. Evite caracteres especiais.
@@ -34,12 +31,9 @@ module "signer_lambda" {
 
 # Step Function
 module "signer_flow" {
-  source = "../modules/stepfunction"
-  name   = "${local.project_env}-signer-flow"
-  tags = {
-    Environment = local.environment
-    Project     = var.project
-  }
+  source     = "../modules/stepfunction"
+  name       = "${local.project_env}-signer-flow"
+  tags       = local.tags
   definition = <<EOF
 {
   "Comment": "Signer flow skeleton",
@@ -63,14 +57,10 @@ EOF
 # Use este output para anexar policies de invoke Lambda ou outras permissões necessárias.
 
 module "s3_object_created_eventbridge" {
-  source     = "../modules/eventbridge"
-  name       = local.project_env
-  target_arn = module.signer_flow.state_machine_arn
-  tags = {
-    Environment = local.environment
-    Project     = var.project
-  }
-
+  source        = "../modules/eventbridge"
+  name          = local.project_env
+  target_arn    = module.signer_flow.state_machine_arn
+  tags          = local.tags
   event_pattern = <<EOF
 {
   "source": ["aws.s3"],
@@ -84,6 +74,7 @@ EOF
 resource "aws_iam_policy" "stepfunction_lambda_invoke" {
   name        = "${local.project_env}-stepfunction-lambda-invoke"
   description = "Permite à Step Function invocar Lambda"
+  tags        = local.tags
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [{
@@ -104,6 +95,7 @@ resource "aws_iam_role_policy_attachment" "stepfunction_invoke_lambda" {
 resource "aws_iam_policy" "lambda_policy" {
   name        = "${local.project_env}-lambda-persistence"
   description = "Permite ao Lambda acessar S3 e DynamoDB da persistência"
+  tags        = local.tags
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [
