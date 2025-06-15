@@ -114,3 +114,22 @@ resource "aws_iam_role_policy_attachment" "stepfunction_invoke_lambda" {
   policy_arn = aws_iam_policy.stepfunction_lambda_invoke.arn
 }
 
+resource "aws_iam_policy" "eventbridge_invoke_stepfunction" {
+  name        = "${local.project_env}-eventbridge-invoke-stepfunction"
+  description = "Permite ao EventBridge invocar a Step Function"
+  tags        = local.tags
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Effect = "Allow",
+      Action = ["states:StartExecution"],
+      Resource = module.signer_flow.resource_arn
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "eventbridge_invoke_stepfunction" {
+  role       = module.s3_object_created_eventbridge.role_name
+  policy_arn = aws_iam_policy.eventbridge_invoke_stepfunction.arn
+}
+
