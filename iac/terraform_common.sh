@@ -19,19 +19,19 @@ function setup_terraform_env() {
       echo "Erro: O nome do branch após o prefixo deve estar no padrão string ou string-string (ex: feature/foo ou feature/foo-bar)"
       exit 1
     fi
-    TF_WORKSPACE="${PREFIX}-$(map_branch_to_env "$SUFIXO")"
+    MY_WORKSPACE="${PREFIX}-$(map_branch_to_env "$SUFIXO")"
   else
-    TF_WORKSPACE="$(map_branch_to_env "$BRANCH_NAME")"
+    MY_WORKSPACE="$(map_branch_to_env "$BRANCH_NAME")"
   fi
 
   echo "Branch detectado: $BRANCH_NAME"
-  echo "Workspace do Terraform definido para: $TF_WORKSPACE"
-  echo "TF_WORKSPACE=$TF_WORKSPACE" >> $GITHUB_ENV
+  echo "Workspace do Terraform definido para: $MY_WORKSPACE"
+  echo "MY_WORKSPACE=$MY_WORKSPACE" >> $GITHUB_ENV
 }
 
 # Seleciona ou cria o workspace do Terraform
 function select_or_create_workspace() {
-  terraform workspace select "$TF_WORKSPACE" || terraform workspace new "$TF_WORKSPACE"
+  terraform workspace select "$MY_WORKSPACE" || terraform workspace new "$MY_WORKSPACE"
 }
 
 # Função para delay condicional baseado no tipo de evento do GitHub Actions
