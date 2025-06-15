@@ -25,14 +25,14 @@ jobs:
     steps:
       - name: Delay condicional para evitar concorrência
         run: |
-          source iac/terraform_common.sh
+          source ../../terraform_common.sh
           conditional_delay
         shell: bash
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Carregar variáveis de ambiente e workspace
         run: |
-          source iac/terraform_common.sh
+          source ../../terraform_common.sh
           setup_terraform_env
         shell: bash
 
