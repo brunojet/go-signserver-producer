@@ -12,10 +12,6 @@ on:
       environment:
         required: true
         type: string
-      main_flow:
-        required: false
-        type: boolean
-        default: false
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -26,7 +22,6 @@ jobs:
   terraform:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
-    if: ${{ inputs.main_flow || (github.event_name == 'workflow_run') }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
