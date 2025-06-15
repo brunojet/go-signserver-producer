@@ -7,16 +7,18 @@ on:
       - master
       - release
     paths:
-      - 'infra/persistence/**'
+      - 'infra/**'
       - '.github/workflows/1-terraform-persistence.yml'
+      - '.github/workflows/2-terraform-orchestrator.yml'
   pull_request:
     branches:
       - develop
       - master
       - release
     paths:
-      - 'iac/infra/persistence/**'
-  workflow_dispatch:
+      - 'infra/**'
+      - '.github/workflows/1-terraform-persistence.yml'
+      - '.github/workflows/2-terraform-orchestrator.yml'
 
 jobs:
   terraform:

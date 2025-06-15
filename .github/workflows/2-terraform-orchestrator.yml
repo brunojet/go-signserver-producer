@@ -5,26 +5,8 @@ on:
     workflows: ["Terraform Deploy - Persistence"]
     types:
       - completed
-  push:
-    branches:
-      - develop
-      - master
-      - release
-    paths:
-      - 'iac/infra/orchestrator/**'
-      - '.github/workflows/2-terraform-orchestrator.yml'
-  pull_request:
-    branches:
-      - develop
-      - master
-      - release
-    paths:
-      - 'iac/infra/orchestrator/**'
 jobs:
   terraform:
-    concurrency:
-      group: terraform-orchestrator-${{ github.ref }}
-      cancel-in-progress: true
     uses: ./.github/workflows/terraform-reusable.yml
     with:
       working-directory: iac/infra/orchestrator
