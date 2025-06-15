@@ -21,7 +21,7 @@ on:
       - '.github/workflows/2-terraform-orchestrator.yml'
 
 jobs:
-  terraform:
+  terraform-persistence:
     uses: ./.github/workflows/terraform-reusable.yml
     with:
       working-directory: iac/infra/persistence

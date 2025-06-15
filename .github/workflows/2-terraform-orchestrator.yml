@@ -3,10 +3,9 @@ name: Terraform Deploy - Orchestrator
 on:
   workflow_run:
     workflows: ["Terraform Deploy - Persistence"]
-    types:
-      - completed
+    types: [completed]
 jobs:
-  terraform:
+  terraform-orchestrator:
     uses: ./.github/workflows/terraform-reusable.yml
     with:
       working-directory: iac/infra/orchestrator
