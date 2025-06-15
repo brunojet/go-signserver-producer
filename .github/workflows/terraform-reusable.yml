@@ -23,14 +23,13 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
       - name: Delay condicional para evitar concorrência
         run: |
-          ls -lisart
           source ./iac/terraform_common.sh
           conditional_delay
         shell: bash
-      - name: Checkout code
-        uses: actions/checkout@v4
       - name: Carregar variáveis de ambiente e workspace
         run: |
           source ./iac/terraform_common.sh
