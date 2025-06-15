@@ -53,7 +53,7 @@ jobs:
       - name: Selecionar workspace do Terraform
         working-directory: ${{ inputs.working-directory }}
         run: |
-          source ./iac/terraform_common.sh
+          source ../../terraform_common.sh
           select_or_create_workspace
         shell: bash
 
