@@ -1,0 +1,29 @@
+name: Terraform Deploy - Persistence
+
+on:
+  push:
+    branches:
+      - develop
+      - master
+      - release
+    paths:
+      - 'infra/persistence/**'
+      - '.github/workflows/1-terraform-persistence.yml'
+  pull_request:
+    branches:
+      - develop
+      - master
+      - 'release*'
+    paths:
+      - 'iac/infra/persistence/**'
+  workflow_dispatch:
+
+jobs:
+  terraform:
+    uses: ./.github/workflows/terraform-reusable.yml
+    with:
+      working-directory: iac/infra/persistence
+      environment: aws-brunojet
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
