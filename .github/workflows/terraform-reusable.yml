@@ -25,6 +25,7 @@ jobs:
     steps:
       - name: Delay condicional para evitar concorrência
         run: |
+          ls -lisart
           source ./iac/terraform_common.sh
           conditional_delay
         shell: bash
