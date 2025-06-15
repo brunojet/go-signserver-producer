@@ -1,3 +1,11 @@
+variable "project_env" {
+  type = string
+}
+
+variable "tags" {
+  type = map(string)
+}
+
 variable "name" { type = string }
 variable "event_pattern" { type = string }
 variable "target_arn" { type = string }
@@ -7,10 +15,4 @@ variable "event_bus_name" {
   type        = string
   default     = "default"
   description = "Nome do EventBridge bus (default = 'default')"
-}
-
-variable "tags" {
-  description = "Tags para os recursos do EventBridge"
-  type        = map(string)
-  default     = {}
 }

@@ -1,5 +1,13 @@
+resource "aws_cloudwatch_event_rule" "this" {
+  name          = "${var.project_env}-${var.name}-eventbridge"
+  tags = var.tags
+  event_pattern = var.event_pattern
+  event_bus_name = var.event_bus_name
+}
+
 resource "aws_iam_role" "eventbridge_invoke" {
-  name = "${var.name}-eventbridge-invoke-role"
+  name = "${aws_cloudwatch_event_rule.this.name}-invoke-role"
+  tags = var.tags
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [{
@@ -8,14 +16,6 @@ resource "aws_iam_role" "eventbridge_invoke" {
       Action = "sts:AssumeRole"
     }]
   })
-  tags = var.tags
-}
-
-resource "aws_cloudwatch_event_rule" "this" {
-  name          = "${var.name}-eventbridge-rule"
-  event_pattern = var.event_pattern
-  event_bus_name = var.event_bus_name
-  tags = var.tags
 }
 
 resource "aws_cloudwatch_event_target" "this" {

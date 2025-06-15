@@ -1,7 +1,11 @@
-variable "name" { type = string }
-variable "definition" { type = string }
-variable "tags" {
-  description = "Tags para o Step Function"
-  type        = map(string)
-  default     = {}
+variable "project_env" {
+  type = string
 }
+
+variable "tags" {
+  type = map(string)
+}
+
+variable "name" { type = string }
+
+variable "definition" { type = string }
