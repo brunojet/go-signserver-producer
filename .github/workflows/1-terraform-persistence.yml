@@ -7,7 +7,7 @@ on:
       - master
       - release
     paths:
-      - 'infra/**'
+      - 'iac/**'
       - '.github/workflows/1-terraform-persistence.yml'
       - '.github/workflows/2-terraform-orchestrator.yml'
   pull_request:
@@ -16,7 +16,7 @@ on:
       - master
       - release
     paths:
-      - 'infra/**'
+      - 'iac/**'
       - '.github/workflows/1-terraform-persistence.yml'
       - '.github/workflows/2-terraform-orchestrator.yml'
 
