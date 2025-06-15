@@ -17,9 +17,3 @@ resource "aws_iam_role" "stepfunction_exec" {
     }]
   })
 }
-
-resource "aws_iam_role_policy_attachment" "cloudwatch_logs" {
-  role       = aws_iam_role.stepfunction_exec.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSStepFunctionsLoggingServiceRolePolicy"
-}
-
