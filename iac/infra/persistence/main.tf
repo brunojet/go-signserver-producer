@@ -38,7 +38,7 @@ module "signature_request_table" {
 
 resource "aws_resourcegroups_group" "env_group" {
   name        = "${local.project_env}-resources"
-  tags = local.tags
+  tags        = local.tags
   description = "Resource Group para o ambiente ${local.project_env}"
   resource_query {
     query = jsonencode({
