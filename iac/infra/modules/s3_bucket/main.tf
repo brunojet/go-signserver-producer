@@ -1,7 +1,6 @@
 resource "aws_s3_bucket" "this" {
-  bucket        = var.bucket_name
-  force_destroy = false # Protege contra deleção acidental por padrão
-  tags          = var.tags
+  bucket = "${var.project_env}-${var.bucket_name}"
+  tags   = var.tags
 
   lifecycle {
     prevent_destroy = true
@@ -17,7 +16,8 @@ resource "aws_s3_bucket_versioning" "this" {
 }
 
 resource "aws_iam_role" "s3_access" {
-  name = "${var.bucket_name}-access-role"
+  name = "${aws_s3_bucket.this.bucket}-access-role"
+  tags = var.tags
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -26,11 +26,11 @@ resource "aws_iam_role" "s3_access" {
       Action    = "sts:AssumeRole"
     }]
   })
-  tags = var.tags
 }
 
 resource "aws_iam_policy" "s3_policy" {
-  name        = "${var.bucket_name}-access-policy"
+  name        = "${aws_s3_bucket.this.bucket}-access-policy"
+  tags = var.tags
   description = "Policy for S3 bucket access"
   policy = jsonencode({
     Version = "2012-10-17"
@@ -42,7 +42,7 @@ resource "aws_iam_policy" "s3_policy" {
         "s3:DeleteObject",
         "s3:ListBucket"
       ]
-      Resource = [aws_s3_bucket.this.arn, "${aws_s3_bucket.this.arn}/*"]
+      Resource = ["${aws_s3_bucket.this.arn}", "${aws_s3_bucket.this.arn}/*"]
     }]
   })
 }
