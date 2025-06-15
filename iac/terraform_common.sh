@@ -3,6 +3,8 @@
 
 # Carrega variáveis de ambiente e define o workspace do Terraform
 function setup_terraform_env() {
+  echo $1
+  echo $2
   # Detecta evento e branch
   if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
     BRANCH_NAME="$GITHUB_BASE_REF"
