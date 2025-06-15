@@ -12,6 +12,10 @@ on:
       environment:
         required: true
         type: string
+      main_flow:
+        required: false
+        type: boolean
+        default: false
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -22,14 +26,11 @@ jobs:
   terraform:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
+    if: ${{ inputs.main_flow || (github.event_name == 'workflow_run') }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Delay condicional para evitar concorrência
-        run: |
-          source ./iac/terraform_common.sh
-          conditional_delay
-        shell: bash
+
       - name: Carregar variáveis de ambiente e workspace
         run: |
           source ./iac/terraform_common.sh

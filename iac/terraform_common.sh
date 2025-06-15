@@ -34,17 +34,6 @@ function select_or_create_workspace() {
   terraform workspace select "$MY_WORKSPACE" || terraform workspace new "$MY_WORKSPACE"
 }
 
-# Função para delay condicional baseado no tipo de evento do GitHub Actions
-function conditional_delay() {
-  EVENT_TYPE="$GITHUB_EVENT_NAME"
-  DELAY=0
-  if [[ "$EVENT_TYPE" == "push" || "$EVENT_TYPE" == "pull_request" ]]; then
-    DELAY=15
-  fi
-  echo "[INFO] Delay de $DELAY segundos para evento: $EVENT_TYPE"
-  sleep $DELAY
-}
-
 # Função para mapear branch para ambiente lógico
 function map_branch_to_env() {
   case "$1" in
