@@ -35,3 +35,18 @@ module "signature_request_table" {
   tags        = local.tags
   project_env = local.project_env
 }
+
+resource "aws_resourcegroups_group" "env_group" {
+  name        = "${local.project_env}-resources"
+  description = "Resource Group para o ambiente ${local.project_env}"
+  resource_query {
+    query = jsonencode({
+      ResourceTypeFilters = ["AWS::AllSupported"],
+      TagFilters = [
+        { Key = "Name", Values = [local.tags.Name] },
+        { Key = "Environment", Values = [local.tags.Environment] }
+      ]
+    })
+  }
+  tags = local.tags
+}

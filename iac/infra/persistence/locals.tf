@@ -1,5 +1,5 @@
 locals {
-  allowed_environments = ["dev", "qa", "prod"]
+  allowed_environments = ["dev", "hml", "prod"]
   environment          = terraform.workspace
   project_env          = "${var.project}-${local.environment}"
   is_feature_branch    = can(regex("^feature-", local.environment))
@@ -8,7 +8,7 @@ locals {
   is_valid_env         = contains(local.allowed_environments, local.environment) || local.is_feature_branch || local.is_hotfix_branch || local.is_bugfix_branch
 
   tags = {
-    Project     = var.project
+    Name        = var.project
     Environment = local.environment
     ManagedBy   = "terraform"
     Module      = "persistence"

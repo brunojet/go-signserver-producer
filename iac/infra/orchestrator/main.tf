@@ -81,9 +81,9 @@ EOF
 module "s3_object_created_eventbridge" {
   source        = "../modules/eventbridge"
   name          = "s3-object-created"
+  tags          = local.tags
   project_env   = local.project_env
   target_arn    = module.signer_flow.resource_arn
-  tags          = local.tags
   event_pattern = <<EOF
 {
   "source": ["aws.s3"],
@@ -97,8 +97,8 @@ EOF
 # Exemplo: Policy para Step Function invocar Lambda
 resource "aws_iam_policy" "stepfunction_lambda_invoke" {
   name        = "${local.project_env}-stepfunction-lambda-invoke"
-  description = "Permite à Step Function invocar Lambda"
   tags        = local.tags
+  description = "Permite à Step Function invocar Lambda"
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [{
@@ -121,8 +121,8 @@ resource "aws_iam_policy" "eventbridge_invoke_stepfunction" {
   policy = jsonencode({
     Version = "2012-10-17",
     Statement = [{
-      Effect = "Allow",
-      Action = ["states:StartExecution"],
+      Effect   = "Allow",
+      Action   = ["states:StartExecution"],
       Resource = module.signer_flow.resource_arn
     }]
   })
@@ -132,4 +132,3 @@ resource "aws_iam_role_policy_attachment" "eventbridge_invoke_stepfunction" {
   role       = module.s3_object_created_eventbridge.role_name
   policy_arn = aws_iam_policy.eventbridge_invoke_stepfunction.arn
 }
-
